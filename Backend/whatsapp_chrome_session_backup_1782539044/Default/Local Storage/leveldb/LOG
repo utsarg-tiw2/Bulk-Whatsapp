@@ -1,0 +1,17 @@
+2026/06/27-10:44:34.229 51fc Reusing MANIFEST C:\Users\UTSARG\Downloads\WhatsApp Project\Backend\whatsapp_chrome_session\Default\Local Storage\leveldb/MANIFEST-000001
+2026/06/27-10:44:34.236 51fc Recovering log #10
+2026/06/27-10:44:34.238 51fc Reusing old log C:\Users\UTSARG\Downloads\WhatsApp Project\Backend\whatsapp_chrome_session\Default\Local Storage\leveldb/000010.log 
+2026/06/27-10:47:35.036 5b6c Level-0 table #14: started
+2026/06/27-10:47:35.041 5b6c Level-0 table #14: 30615 bytes OK
+2026/06/27-10:47:35.044 5b6c Delete type=0 #10
+2026/06/27-11:00:08.343 5b6c Level-0 table #16: started
+2026/06/27-11:00:08.354 5b6c Level-0 table #16: 21049 bytes OK
+2026/06/27-11:00:08.359 5b6c Delete type=0 #13
+2026/06/27-11:00:08.361 5b6c Compacting 4@0 + 0@1 files
+2026/06/27-11:00:08.373 5b6c Generated table #17@0: 507 keys, 25473 bytes
+2026/06/27-11:00:08.374 5b6c Compacted 4@0 + 0@1 files => 25473 bytes
+2026/06/27-11:00:08.375 5b6c compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/06/27-11:00:08.378 5b6c Delete type=2 #7
+2026/06/27-11:00:08.378 5b6c Delete type=2 #11
+2026/06/27-11:00:08.379 5b6c Delete type=2 #14
+2026/06/27-11:00:08.379 5b6c Delete type=2 #16
