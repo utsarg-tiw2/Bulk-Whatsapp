@@ -64,14 +64,12 @@ export default function App() {
 
     const checkBackend = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/send", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ phone: "test", message: "ping" }),
-        });
-        setBackendConnected(true);
+        const response = await fetch("http://localhost:5000/api/health");
+        if (response.ok) {
+          setBackendConnected(true);
+        } else {
+          setBackendConnected(false);
+        }
       } catch (err) {
         setBackendConnected(false);
       }

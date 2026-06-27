@@ -122,7 +122,9 @@ def get_driver():
 
 # Chrome will be initialized dynamically on the first message sending request instead of startup.
 
-from werkzeug.utils import secure_filename
+@app.route('/api/health', methods=['GET', 'POST'])
+def health_check():
+    return jsonify({"status": "healthy"}), 200
 
 @app.route('/api/send', methods=['POST'])
 def send_whatsapp_message():
@@ -141,8 +143,14 @@ def send_whatsapp_message():
         
         if not phone:
             return jsonify({"status": "Error", "message": "Phone number is required!"}), 400
+            
+        # Clean phone number: remove '+', spaces, brackets, hyphens
+        clean_phone = "".join(c for c in phone if c.isdigit())
         
-        # Get active driver (re-opens if user closed it)
+        if len(clean_phone) < 7:
+            return jsonify({"status": "Error", "message": f"Phone number is too short or invalid: {phone}"}), 400
+        
+        # Get active driver (re-opens if user closed it) - now called ONLY for valid phone numbers
         active_driver = get_driver()
         
         # Save attachments to temp folder
@@ -158,12 +166,6 @@ def send_whatsapp_message():
                 file_path = os.path.join(temp_dir, filename)
                 file.save(file_path)
                 saved_files.append(file_path)
-        
-        # Clean phone number: remove '+', spaces, brackets, hyphens
-        clean_phone = "".join(c for c in phone if c.isdigit())
-        
-        if len(clean_phone) < 7:
-            return jsonify({"status": "Error", "message": f"Phone number is too short or invalid: {phone}"}), 400
         
         # If it's a 10 digit number, assume Indian country code (91)
         if len(clean_phone) == 10:
