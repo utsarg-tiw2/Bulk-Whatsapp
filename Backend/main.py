@@ -120,11 +120,7 @@ def get_driver():
     driver.get('https://web.whatsapp.com')
     return driver
 
-# Initialize driver at startup
-try:
-    get_driver()
-except Exception as e:
-    print(f"Could not open browser at startup: {e}. It will try to open on the first send request.")
+# Chrome will be initialized dynamically on the first message sending request instead of startup.
 
 from werkzeug.utils import secure_filename
 
