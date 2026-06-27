@@ -1,3 +1,5 @@
+# WhatsApp Bulk Sender Flask Backend Server
+# Optimized with Chrome self-healing launch, light healthcheck, and auto-cleanup.
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
