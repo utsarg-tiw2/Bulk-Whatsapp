@@ -52,6 +52,96 @@ export default function App() {
     { id: 2, name: "Sneha Sharma", phone: "+918765432109", status: "Success", time: "11:15 AM" }
   ]);
 
+  // SQLite Saved Contacts State
+  const [savedContacts, setSavedContacts] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [newContactName, setNewContactName] = useState("");
+  const [newContactPhone, setNewContactPhone] = useState("");
+  const [saveStatus, setSaveStatus] = useState("Idle");
+
+  const fetchSavedContacts = async (query = "") => {
+    try {
+      const url = query.trim() 
+        ? `http://localhost:5000/api/contacts/search?q=${encodeURIComponent(query)}`
+        : "http://localhost:5000/api/contacts";
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        setSavedContacts(data);
+      }
+    } catch (err) {
+      console.error("Error fetching contacts:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (view === "dashboard") {
+      fetchSavedContacts(searchQuery);
+    }
+  }, [view, searchQuery]);
+
+  const handleSaveContact = async (e) => {
+    e.preventDefault();
+    if (!newContactName.trim() || !newContactPhone.trim()) {
+      setSaveStatus("Error: Name and Phone are required!");
+      return;
+    }
+    setSaveStatus("Saving...");
+    try {
+      const res = await fetch("http://localhost:5000/api/contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newContactName, phone: newContactPhone })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSaveStatus("Success!");
+        setNewContactName("");
+        setNewContactPhone("");
+        fetchSavedContacts(searchQuery);
+        setTimeout(() => setSaveStatus("Idle"), 3000);
+      } else {
+        setSaveStatus(`Error: ${data.message || "Failed to save"}`);
+      }
+    } catch (err) {
+      setSaveStatus("Error: Backend unreachable");
+    }
+  };
+
+  const handleDeleteContact = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this contact?")) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/contacts/${id}`, {
+        method: "DELETE"
+      });
+      if (res.ok) {
+        fetchSavedContacts(searchQuery);
+      } else {
+        alert("Failed to delete contact.");
+      }
+    } catch (err) {
+      console.error("Error deleting contact:", err);
+    }
+  };
+
+  const handleSelectForDirect = (contact) => {
+    setName(contact.name);
+    setPhone(contact.phone);
+    setActiveTab("direct");
+  };
+
+  const handleAddToBulk = (contact) => {
+    setBulkContacts(prev => {
+      if (prev.some(c => c.phone === contact.phone)) {
+        alert("Contact is already in the bulk campaign list!");
+        return prev;
+      }
+      const updated = [...prev, { name: contact.name, phone: contact.phone }];
+      setDirectNumbersInput(updated.map(c => `${c.name}:${c.phone}`).join('\n'));
+      return updated;
+    });
+  };
+
   // Campaign ref for loop pausing/canceling
   const campaignRunningRef = useRef(campaignRunning);
   useEffect(() => {
@@ -409,10 +499,22 @@ export default function App() {
               }`}
             >
               <div className="flex items-center gap-3">
-                <Users className="w-4 h-4" />
+                <Smartphone className="w-4 h-4" />
                 <span>Bulk Campaigns</span>
               </div>
               <span className="text-[9px] bg-emerald-600 text-white px-1.5 py-0.5 rounded font-bold uppercase">Active</span>
+            </button>
+
+            <button 
+              onClick={() => { setActiveTab("contacts"); setCampaignRunning(false); }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all border ${
+                activeTab === "contacts" 
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm" 
+                  : "text-slate-600 hover:bg-slate-100/50 border-transparent"
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span>Saved Directory</span>
             </button>
 
             <div className="relative group">
@@ -461,7 +563,7 @@ export default function App() {
       </aside>
 
       {/* Main Content Area */}
-      {activeTab === "direct" ? (
+      {activeTab === "direct" && (
         <main className="flex-1 p-6 md:p-10 overflow-y-auto z-10 max-w-7xl mx-auto w-full space-y-8">
           {/* Main Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 pb-6">
@@ -674,7 +776,9 @@ export default function App() {
             </div>
           </div>
         </main>
-      ) : (
+      )}
+
+      {activeTab === "bulk" && (
         /* Bulk Campaign Workspace Tab */
         <main className="flex-1 p-6 md:p-10 overflow-y-auto z-10 max-w-7xl mx-auto w-full space-y-8">
           {/* Header */}
@@ -979,6 +1083,160 @@ export default function App() {
 
             </div>
 
+          </div>
+        </main>
+      )}
+
+      {activeTab === "contacts" && (
+        <main className="flex-1 p-6 md:p-10 overflow-y-auto z-10 max-w-7xl mx-auto w-full space-y-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 pb-6">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                Saved Contacts Directory 📇
+              </h1>
+              <p className="text-sm text-slate-600 mt-1">
+                Manage your persistent SQLite contact list, search records instantly, and assign them directly to campaigns.
+              </p>
+            </div>
+            <div className="bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 shadow-sm">
+              Saved Records: <span className="text-emerald-600">{savedContacts.length}</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Left Column: Add New Contact Form */}
+            <div className="lg:col-span-4 bg-white border border-slate-200 p-6 rounded-2xl space-y-6 shadow-sm">
+              <h2 className="text-base font-bold text-slate-800">Add New Contact</h2>
+              
+              <form onSubmit={handleSaveContact} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">
+                    Contact Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Rahul Verma"
+                    value={newContactName}
+                    onChange={(e) => setNewContactName(e.target.value)}
+                    className="w-full p-3 rounded-xl bg-slate-50 border border-slate-250 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 outline-none transition-all text-sm text-slate-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">
+                    Phone Number
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="9876543210"
+                    value={newContactPhone}
+                    onChange={(e) => setNewContactPhone(e.target.value)}
+                    className="w-full p-3 rounded-xl bg-slate-50 border border-slate-250 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 outline-none transition-all text-sm text-slate-900"
+                  />
+                </div>
+
+                {saveStatus !== "Idle" && (
+                  <div className={`p-3 rounded-xl text-xs font-semibold ${
+                    saveStatus.startsWith("Success") 
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
+                      : saveStatus.startsWith("Error")
+                      ? "bg-rose-50 text-rose-700 border border-rose-200"
+                      : "bg-slate-50 text-slate-500 border border-slate-200"
+                  }`}>
+                    {saveStatus}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl transition-all duration-200 shadow-md shadow-emerald-600/10 flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Save Contact
+                </button>
+              </form>
+            </div>
+
+            {/* Right Column: Search and Directory Table */}
+            <div className="lg:col-span-8 bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                <h2 className="text-base font-bold text-slate-800">Directory Records</h2>
+                
+                {/* Search Input */}
+                <div className="relative max-w-xs w-full">
+                  <input
+                    type="text"
+                    placeholder="Search by name or number..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-3 pr-8 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 outline-none transition-all text-xs"
+                  />
+                  {searchQuery && (
+                    <button 
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-655 text-xs font-bold font-mono"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Contacts Table */}
+              <div className="border border-slate-200 rounded-xl overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider font-bold border-b border-slate-200">
+                        <th className="p-3.5">Name</th>
+                        <th className="p-3.5">Phone</th>
+                        <th className="p-3.5 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {savedContacts.length > 0 ? (
+                        savedContacts.map((contact) => (
+                          <tr key={contact.id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="p-3.5 font-semibold text-slate-800">{contact.name}</td>
+                            <td className="p-3.5 font-mono text-slate-600">{contact.phone}</td>
+                            <td className="p-3.5 text-right flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => handleSelectForDirect(contact)}
+                                className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2.5 py-1.5 rounded-lg font-bold transition-all text-[10px]"
+                                title="Send Direct Message"
+                              >
+                                Send Direct
+                              </button>
+                              <button
+                                onClick={() => handleAddToBulk(contact)}
+                                className="bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1.5 rounded-lg font-bold transition-all text-[10px]"
+                                title="Add to Bulk Queue"
+                              >
+                                Add to Bulk
+                              </button>
+                              <button
+                                onClick={() => handleDeleteContact(contact.id)}
+                                className="hover:bg-rose-50 text-rose-600 p-1.5 rounded-lg transition-colors border border-transparent hover:border-rose-100"
+                                title="Delete Record"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="3" className="text-center p-8 text-slate-450 font-medium">
+                            No saved contacts found. Add some contacts or check your search filter.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
           </div>
         </main>
       )}

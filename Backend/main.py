@@ -15,6 +15,7 @@ from selenium.webdriver.chrome.options import Options
 import os
 import time
 import atexit
+import sqlite3
 
 app = Flask(__name__)
 CORS(app) # Enable CORS for React frontend
@@ -273,6 +274,77 @@ def send_whatsapp_message():
                     os.remove(file_path)
             except Exception as e:
                 print(f"Failed to delete temp file {file_path}: {e}")
+
+# --- DATABASE ENDPOINTS ---
+@app.route('/api/contacts', methods=['GET'])
+def get_contacts():
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "contacts.db")
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, name, phone FROM contacts ORDER BY name ASC")
+        rows = cursor.fetchall()
+        conn.close()
+        contacts = [{"id": row[0], "name": row[1], "phone": row[2]} for row in rows]
+        return jsonify(contacts), 200
+    except Exception as e:
+        return jsonify({"status": "Error", "message": str(e)}), 500
+
+@app.route('/api/contacts', methods=['POST'])
+def add_contact():
+    data = request.json or {}
+    name = data.get('name', '').strip()
+    phone = data.get('phone', '').strip()
+    if not name or not phone:
+        return jsonify({"status": "Error", "message": "Name and phone number are required!"}), 400
+    
+    clean_phone = "".join(c for c in phone if c.isdigit())
+    if len(clean_phone) < 7:
+        return jsonify({"status": "Error", "message": "Phone number is too short or invalid!"}), 400
+        
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "contacts.db")
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO contacts (name, phone) VALUES (?, ?)", (name, clean_phone))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "Success", "message": "Contact added successfully!"}), 201
+    except sqlite3.IntegrityError:
+        return jsonify({"status": "Error", "message": "Phone number already exists in database!"}), 400
+    except Exception as e:
+        return jsonify({"status": "Error", "message": str(e)}), 500
+
+@app.route('/api/contacts/<int:contact_id>', methods=['DELETE'])
+def delete_contact(contact_id):
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "contacts.db")
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM contacts WHERE id = ?", (contact_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "Success", "message": "Contact deleted successfully!"}), 200
+    except Exception as e:
+        return jsonify({"status": "Error", "message": str(e)}), 500
+
+@app.route('/api/contacts/search', methods=['GET'])
+def search_contacts():
+    query = request.args.get('q', '').strip()
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "contacts.db")
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, name, phone FROM contacts WHERE name LIKE ? OR phone LIKE ? ORDER BY name ASC",
+            (f"%{query}%", f"%{query}%")
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        contacts = [{"id": row[0], "name": row[1], "phone": row[2]} for row in rows]
+        return jsonify(contacts), 200
+    except Exception as e:
+        return jsonify({"status": "Error", "message": str(e)}), 500
 
 if __name__ == '__main__':
     # Run the server on port 5000
