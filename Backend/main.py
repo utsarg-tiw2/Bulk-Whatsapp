@@ -11,6 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 import os
 import time
+import atexit
 
 app = Flask(__name__)
 CORS(app) # Enable CORS for React frontend
@@ -18,6 +19,17 @@ CORS(app) # Enable CORS for React frontend
 new_msg_time = 10
 country_code = "91"
 driver = None
+
+def cleanup():
+    global driver
+    if driver is not None:
+        print("\n[*] Shutting down Chrome webdriver...")
+        try:
+            driver.quit()
+        except Exception:
+            pass
+
+atexit.register(cleanup)
 
 def get_driver():
     global driver
