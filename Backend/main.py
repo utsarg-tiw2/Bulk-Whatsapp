@@ -185,8 +185,25 @@ def send_whatsapp_message():
         except Exception:
             pass
             
+        # Find the old textbox if it exists to detect page transition
+        old_textbox = None
+        try:
+            old_textbox = active_driver.find_element(By.XPATH, '//footer//div[@contenteditable="true" and @role="textbox"]')
+        except Exception:
+            pass
+
         link = f'https://web.whatsapp.com/send/?phone={clean_phone}'
         active_driver.get(link)
+        
+        # Wait for SPA navigation to start and old elements to clear
+        if old_textbox:
+            try:
+                WebDriverWait(active_driver, 8).until(EC.staleness_of(old_textbox))
+                print("Transition to new chat started.")
+            except Exception:
+                time.sleep(3)
+        else:
+            time.sleep(3)
         
         # Wait for either the chat text box OR the invalid number popup to appear
         target_xpath = (
@@ -202,29 +219,66 @@ def send_whatsapp_message():
                 EC.presence_of_element_located((By.XPATH, target_xpath))
             )
         except Exception:
+            # Check if we are on the login/QR code page (logged out status)
+            try:
+                active_driver.find_element(By.TAG_NAME, "canvas")
+                return jsonify({"status": "Error", "message": "WhatsApp session is logged out. Please scan the QR code in the browser window first!"}), 401
+            except Exception:
+                pass
             return jsonify({"status": "Error", "message": "Chat screen failed to load (timeout)!"}), 500
             
-        # Check if the resolved element is the invalid number popup
-        element_text = element.text.lower()
-        if "invalid" in element_text or "phone number" in element_text:
-            print(f"Invalid phone number detected for: {phone}")
-            try:
-                ok_btn = active_driver.find_element(By.XPATH, '//div[@role="button" or @type="button" or self::button][contains(translate(., "ok", "OK"), "OK") or contains(translate(., "close", "CLOSE"), "CLOSE")]')
-                ok_btn.click()
-            except Exception as btn_err:
-                print(f"Could not click popup OK button: {btn_err}")
-            return jsonify({"status": "Error", "message": "Phone number is not registered on WhatsApp!"}), 400
+        # Check if the resolved element is the textbox or invalid popup
+        is_textbox = False
+        try:
+            role = element.get_attribute("role")
+            contenteditable = element.get_attribute("contenteditable")
+            data_tab = element.get_attribute("data-tab")
+            if role == "textbox" or contenteditable == "true" or data_tab == "10":
+                is_textbox = True
+        except Exception:
+            pass
+
+        if not is_textbox:
+            # This is likely the invalid popup
+            element_text = element.text.lower()
+            if "invalid" in element_text or "phone number" in element_text:
+                print(f"Invalid phone number detected for: {phone}")
+                try:
+                    ok_btn = active_driver.find_element(By.XPATH, '//div[@role="button" or @type="button" or self::button][contains(translate(., "ok", "OK"), "OK") or contains(translate(., "close", "CLOSE"), "CLOSE")]')
+                    ok_btn.click()
+                except Exception as btn_err:
+                    print(f"Could not click popup OK button: {btn_err}")
+                return jsonify({"status": "Error", "message": "Phone number is not registered on WhatsApp!"}), 400
         
         # If there is message text, send it
         if message:
+            # Click the textbox specifically to focus it
+            try:
+                element.click()
+                time.sleep(0.5)
+            except Exception as click_err:
+                print(f"Warning: Could not click textbox element: {click_err}")
+
             actions = ActionChains(active_driver)
+            actions.click(element) # Explicitly focus element in the action chain
             for line in message.split('\n'):
                 actions.send_keys(line)
                 # SHIFT + ENTER for line break
                 actions.key_down(Keys.SHIFT).send_keys(Keys.ENTER).key_up(Keys.SHIFT)
             actions.send_keys(Keys.ENTER)
             actions.perform()
-            time.sleep(2)
+            time.sleep(1)
+            
+            # Fallback: Click the send button if Enter key press didn't send/clear it
+            try:
+                send_btn = active_driver.find_element(By.XPATH, '//span[@data-icon="send"] | //button[@data-testid="compose-btn-send"] | //span[@data-testid="send"]')
+                send_btn.click()
+                print("Clicked Send button fallback.")
+                time.sleep(1)
+            except Exception:
+                pass
+            
+            time.sleep(1)
             
         # Send attachments if any
         for file_path in saved_files:
@@ -347,5 +401,5 @@ def search_contacts():
         return jsonify({"status": "Error", "message": str(e)}), 500
 
 if __name__ == '__main__':
-    # Run the server on port 5000
-    app.run(host='127.0.0.1', port=5000, debug=False)
+    # Run the server on port 5001
+    app.run(host='127.0.0.1', port=5001, debug=False)

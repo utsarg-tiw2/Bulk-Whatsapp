@@ -47,10 +47,22 @@ export default function App() {
 
   // Global State
   const [backendConnected, setBackendConnected] = useState(null); // null (checking), true, false
-  const [history, setHistory] = useState([
-    { id: 1, name: "Aarav Patel", phone: "+919876543210", status: "Success", time: "10:30 AM" },
-    { id: 2, name: "Sneha Sharma", phone: "+918765432109", status: "Success", time: "11:15 AM" }
-  ]);
+  const [history, setHistory] = useState(() => {
+    try {
+      const saved = localStorage.getItem("whatsbulk_history");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("whatsbulk_history", JSON.stringify(history));
+    } catch (e) {
+      console.error("Failed to save history to localStorage", e);
+    }
+  }, [history]);
 
   // SQLite Saved Contacts State
   const [savedContacts, setSavedContacts] = useState([]);
@@ -62,8 +74,8 @@ export default function App() {
   const fetchSavedContacts = async (query = "") => {
     try {
       const url = query.trim() 
-        ? `http://localhost:5000/api/contacts/search?q=${encodeURIComponent(query)}`
-        : "http://localhost:5000/api/contacts";
+        ? `http://localhost:5001/api/contacts/search?q=${encodeURIComponent(query)}`
+        : "http://localhost:5001/api/contacts";
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
@@ -88,7 +100,7 @@ export default function App() {
     }
     setSaveStatus("Saving...");
     try {
-      const res = await fetch("http://localhost:5000/api/contacts", {
+      const res = await fetch("http://localhost:5001/api/contacts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newContactName, phone: newContactPhone })
@@ -111,7 +123,7 @@ export default function App() {
   const handleDeleteContact = async (id) => {
     if (!window.confirm("Are you sure you want to delete this contact?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/contacts/${id}`, {
+      const res = await fetch(`http://localhost:5001/api/contacts/${id}`, {
         method: "DELETE"
       });
       if (res.ok) {
@@ -154,7 +166,7 @@ export default function App() {
 
     const checkBackend = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/health");
+        const response = await fetch("http://localhost:5001/api/health");
         if (response.ok) {
           setBackendConnected(true);
         } else {
@@ -189,7 +201,7 @@ export default function App() {
     setStatus("Sending...");
     
     try {
-      const response = await fetch("http://localhost:5000/api/send", {
+      const response = await fetch("http://localhost:5001/api/send", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -371,7 +383,7 @@ export default function App() {
       });
 
       try {
-        const response = await fetch("http://localhost:5000/api/send", {
+        const response = await fetch("http://localhost:5001/api/send", {
           method: "POST",
           body: formData,
         });
@@ -546,7 +558,7 @@ export default function App() {
             <div className="text-[10px] flex-1">
               <div className="font-semibold text-slate-700">Backend Server</div>
               <div className="text-slate-500 font-mono">
-                {backendConnected === true ? "Online (Port 5000)" : backendConnected === false ? "Offline / Disconnected" : "Pinging server..."}
+                {backendConnected === true ? "Online (Port 5001)" : backendConnected === false ? "Offline / Disconnected" : "Pinging server..."}
               </div>
             </div>
             <span className={`w-2 h-2 rounded-full ${backendConnected ? "bg-emerald-650 animate-pulse" : backendConnected === false ? "bg-rose-600" : "bg-amber-500"}`}></span>
@@ -608,7 +620,7 @@ export default function App() {
                     placeholder="E.g., Amit Sharma"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-emerald-650 focus:ring-1 focus:ring-emerald-655 outline-none transition-all text-sm text-slate-900 placeholder-slate-400"
+                    className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-emerald-650 focus:ring-1 focus:ring-emerald-655 outline-none transition-all text-lg text-slate-900 placeholder-slate-400"
                   />
                 </div>
 
@@ -621,7 +633,7 @@ export default function App() {
                     placeholder="E.g., +919876543210"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-emerald-655 focus:ring-1 focus:ring-emerald-655 outline-none transition-all text-sm font-mono text-slate-900 placeholder-slate-400"
+                    className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-emerald-655 focus:ring-1 focus:ring-emerald-655 outline-none transition-all text-lg font-mono text-slate-900 placeholder-slate-400"
                   />
                 </div>
 
@@ -660,7 +672,7 @@ export default function App() {
                     placeholder="Type your WhatsApp notification body here..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    className="w-full h-36 p-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-emerald-655 focus:ring-1 focus:ring-emerald-655 outline-none transition-all text-sm text-slate-900 placeholder-slate-400 resize-none leading-relaxed"
+                    className="w-full h-36 p-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-emerald-655 focus:ring-1 focus:ring-emerald-655 outline-none transition-all text-lg text-slate-900 placeholder-slate-400 resize-none leading-relaxed"
                   />
                 </div>
 
@@ -748,10 +760,10 @@ export default function App() {
                 <div className="space-y-2 max-h-56 overflow-y-auto scrollbar-thin">
                   {history.length > 0 ? (
                     history.map((log) => (
-                      <div key={log.id} className="flex justify-between items-center p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                      <div key={log.id} className="flex justify-between items-center p-3 rounded-xl bg-slate-50 border border-slate-200 text-sm">
                         <div className="space-y-0.5">
                           <div className="font-semibold text-slate-800">{log.name}</div>
-                          <div className="text-[10px] text-slate-555 font-mono">{log.phone}</div>
+                          <div className="text-xs text-slate-555 font-mono">{log.phone}</div>
                         </div>
                         <div className="text-right">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
@@ -799,7 +811,7 @@ export default function App() {
                 type="text" 
                 value={campaignName} 
                 onChange={(e) => setCampaignName(e.target.value)}
-                className="w-full text-xs font-semibold bg-slate-50 border border-slate-200 p-1.5 rounded outline-none focus:border-emerald-600 text-slate-800"
+                className="w-full text-sm font-semibold bg-slate-50 border border-slate-200 p-1.5 rounded outline-none focus:border-emerald-600 text-slate-800"
               />
             </div>
           </div>
@@ -826,7 +838,7 @@ export default function App() {
                   placeholder="Paste numbers here, separated by commas or newlines. Format: Name:Number or just Number&#10;E.g., Amit:+919876543210&#10;Sneha:+918765432109"
                   value={directNumbersInput}
                   onChange={(e) => handleDirectNumbersChange(e.target.value)}
-                  className="w-full h-28 p-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-emerald-655 focus:ring-1 focus:ring-emerald-655 outline-none transition-all text-xs font-mono text-slate-900 placeholder-slate-400 resize-none leading-relaxed"
+                  className="w-full h-28 p-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-emerald-655 focus:ring-1 focus:ring-emerald-655 outline-none transition-all text-lg font-mono text-slate-900 placeholder-slate-400 resize-none leading-relaxed"
                 />
 
                 {/* CSV File Drag & Drop Input */}
@@ -862,7 +874,7 @@ export default function App() {
                   placeholder="Type message. Use {{Name}} to customize for each user automatically..."
                   value={campaignMessage}
                   onChange={(e) => setCampaignMessage(e.target.value)}
-                  className="w-full h-32 p-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-emerald-655 focus:ring-1 focus:ring-emerald-655 outline-none transition-all text-sm text-slate-900 placeholder-slate-400 resize-none leading-relaxed"
+                  className="w-full h-32 p-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-emerald-655 focus:ring-1 focus:ring-emerald-655 outline-none transition-all text-lg text-slate-900 placeholder-slate-400 resize-none leading-relaxed"
                 />
 
                 {/* Bulk Templates Populator */}
@@ -953,7 +965,7 @@ export default function App() {
                       max="120"
                       value={campaignDelay}
                       onChange={(e) => setCampaignDelay(Number(e.target.value))}
-                      className="w-16 p-1.5 text-xs text-center border border-slate-200 rounded-lg focus:border-emerald-600 bg-white font-semibold text-slate-850 outline-none"
+                      className="w-16 p-1.5 text-sm text-center border border-slate-200 rounded-lg focus:border-emerald-600 bg-white font-semibold text-slate-855 outline-none"
                     />
                     <span className="text-xs text-slate-500 font-medium">sec delay</span>
                   </div>
@@ -1040,7 +1052,7 @@ export default function App() {
                 <div className="space-y-2.5 max-h-72 overflow-y-auto scrollbar-thin">
                   {campaignContacts.length > 0 ? (
                     campaignContacts.map((contact, idx) => (
-                      <div key={idx} className="flex justify-between items-center p-2.5 rounded-xl border bg-slate-50 border-slate-200 text-xs transition-all">
+                      <div key={idx} className="flex justify-between items-center p-2.5 rounded-xl border bg-slate-50 border-slate-200 text-sm transition-all">
                         <div className="space-y-0.5">
                           <div className="font-semibold text-slate-800 flex items-center gap-1.5">
                             {contact.name}
@@ -1048,7 +1060,7 @@ export default function App() {
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
                             )}
                           </div>
-                          <div className="text-[10px] text-slate-500 font-mono">{contact.phone}</div>
+                          <div className="text-xs text-slate-500 font-mono">{contact.phone}</div>
                         </div>
 
                         <div>
@@ -1118,7 +1130,7 @@ export default function App() {
                     placeholder="Rahul Verma"
                     value={newContactName}
                     onChange={(e) => setNewContactName(e.target.value)}
-                    className="w-full p-3 rounded-xl bg-slate-50 border border-slate-250 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 outline-none transition-all text-sm text-slate-900"
+                    className="w-full p-3 rounded-xl bg-slate-50 border border-slate-250 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 outline-none transition-all text-base text-slate-900"
                   />
                 </div>
 
@@ -1131,7 +1143,7 @@ export default function App() {
                     placeholder="9876543210"
                     value={newContactPhone}
                     onChange={(e) => setNewContactPhone(e.target.value)}
-                    className="w-full p-3 rounded-xl bg-slate-50 border border-slate-250 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 outline-none transition-all text-sm text-slate-900"
+                    className="w-full p-3 rounded-xl bg-slate-50 border border-slate-250 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 outline-none transition-all text-base text-slate-900"
                   />
                 </div>
 
@@ -1185,7 +1197,7 @@ export default function App() {
               {/* Contacts Table */}
               <div className="border border-slate-200 rounded-xl overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-xs">
+                  <table className="w-full text-left border-collapse text-sm">
                     <thead>
                       <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider font-bold border-b border-slate-200">
                         <th className="p-3.5">Name</th>
@@ -1202,14 +1214,14 @@ export default function App() {
                             <td className="p-3.5 text-right flex items-center justify-end gap-2">
                               <button
                                 onClick={() => handleSelectForDirect(contact)}
-                                className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2.5 py-1.5 rounded-lg font-bold transition-all text-[10px]"
+                                className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2.5 py-1.5 rounded-lg font-bold transition-all text-xs"
                                 title="Send Direct Message"
                               >
                                 Send Direct
                               </button>
                               <button
                                 onClick={() => handleAddToBulk(contact)}
-                                className="bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1.5 rounded-lg font-bold transition-all text-[10px]"
+                                className="bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1.5 rounded-lg font-bold transition-all text-xs"
                                 title="Add to Bulk Queue"
                               >
                                 Add to Bulk

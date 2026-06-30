@@ -12,17 +12,14 @@ import {
   Sparkles, 
   Smartphone, 
   Layers, 
-  Check, 
   Menu, 
   X,
-  Clock,
-  HelpCircle
+  Clock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function LandingPage({ onLaunchApp }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activePlan, setActivePlan] = useState("monthly");
   const [playgroundText, setPlaygroundText] = useState("Hey there! 🚀 Just wanted to let you know that our new WhatsApp marketing tool is now live. Try it out!");
   
   // Typing simulation state for the hero phone mockup
@@ -95,7 +92,7 @@ export default function LandingPage({ onLaunchApp }) {
 
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-slate-200 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <div className="w-full px-4 md:px-12 lg:px-16 flex justify-between items-center">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-md shadow-emerald-500/10">
               <MessageSquare className="w-5 h-5 text-slate-950 stroke-[2.5]" />
@@ -106,12 +103,9 @@ export default function LandingPage({ onLaunchApp }) {
             </div>
           </div>
 
-          {/* Desktop Nav Links */}
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
             <button onClick={() => scrollToSection("features")} className="hover:text-emerald-650 transition-colors">Features</button>
             <button onClick={() => scrollToSection("playground")} className="hover:text-emerald-650 transition-colors">Live Preview</button>
-            <button onClick={() => scrollToSection("pricing")} className="hover:text-emerald-650 transition-colors">Pricing</button>
-            <button onClick={() => scrollToSection("faq")} className="hover:text-emerald-650 transition-colors">FAQ</button>
           </div>
 
           <div className="hidden md:flex items-center gap-4">
@@ -143,8 +137,6 @@ export default function LandingPage({ onLaunchApp }) {
             >
               <button onClick={() => scrollToSection("features")} className="text-left py-2 hover:text-emerald-605 transition-colors">Features</button>
               <button onClick={() => scrollToSection("playground")} className="text-left py-2 hover:text-emerald-605 transition-colors">Live Preview</button>
-              <button onClick={() => scrollToSection("pricing")} className="text-left py-2 hover:text-emerald-605 transition-colors">Pricing</button>
-              <button onClick={() => scrollToSection("faq")} className="text-left py-2 hover:text-emerald-605 transition-colors">FAQ</button>
               <button 
                 onClick={onLaunchApp}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition-all duration-200 text-center shadow-md shadow-emerald-600/10 mt-2 flex items-center justify-center gap-2"
@@ -157,7 +149,7 @@ export default function LandingPage({ onLaunchApp }) {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative max-w-7xl mx-auto px-6 pt-12 pb-24 md:pt-20 md:pb-32 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center z-10">
+      <section className="relative w-full px-6 md:px-12 lg:px-16 pt-12 pb-24 md:pt-20 md:pb-32 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center z-10">
         <div className="lg:col-span-7 space-y-8 text-center lg:text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-xs font-semibold text-emerald-700">
             <Sparkles className="w-3.5 h-3.5" />
@@ -280,7 +272,7 @@ export default function LandingPage({ onLaunchApp }) {
 
       {/* Feature Cards Grid Section */}
       <section id="features" className="bg-slate-100/50 border-y border-slate-200 py-20 relative z-10">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="w-full px-6 md:px-12 lg:px-16">
           <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
             <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900">
               Built for Speed, Engineered for Safety
@@ -361,7 +353,7 @@ export default function LandingPage({ onLaunchApp }) {
       </section>
 
       {/* Interactive Mockup Playground Section */}
-      <section id="playground" className="py-20 max-w-7xl mx-auto px-6 relative z-10">
+      <section id="playground" className="py-20 w-full px-6 md:px-12 lg:px-16 relative z-10">
         <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
           <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900">
             See Your Messages in Action
@@ -446,211 +438,9 @@ export default function LandingPage({ onLaunchApp }) {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="bg-slate-100/30 border-y border-slate-200 py-20 relative z-10">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center max-w-3xl mx-auto space-y-4 mb-12">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900">
-              Flexible Plans for Growing Teams
-            </h2>
-            <p className="text-slate-650 text-base">
-              Start broadcasting for free, and upgrade as your recipient list and marketing requirements scale.
-            </p>
-
-            {/* Billing Toggle */}
-            <div className="inline-flex items-center gap-1 p-1 bg-slate-100 border border-slate-200 rounded-xl mt-4">
-              <button 
-                onClick={() => setActivePlan("monthly")}
-                className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-                  activePlan === "monthly" ? "bg-emerald-600 text-white shadow-sm" : "text-slate-600 hover:text-slate-850"
-                }`}
-              >
-                Monthly Billing
-              </button>
-              <button 
-                onClick={() => setActivePlan("yearly")}
-                className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                  activePlan === "yearly" ? "bg-emerald-600 text-white shadow-sm" : "text-slate-600 hover:text-slate-850"
-                }`}
-              >
-                Yearly Billing
-                <span className="text-[9px] bg-white border border-slate-200/60 text-emerald-650 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Save 20%</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto">
-            {/* Starter Plan */}
-            <div className="bg-white border border-slate-200 p-8 rounded-2xl flex flex-col justify-between hover:border-slate-350 hover:shadow-lg transition-all">
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">Starter</h3>
-                  <p className="text-slate-600 text-xs mt-1">For side projects & small outreach</p>
-                </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-slate-900">$0</span>
-                  <span className="text-slate-600 text-sm">/ forever</span>
-                </div>
-                <div className="space-y-3.5 border-t border-slate-100 pt-6 text-sm text-slate-700">
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Up to 50 recipients / day</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Single Active Chrome Session</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Live Connection Status Indicator</span>
-                  </div>
-                  <div className="text-slate-400 line-through flex items-center gap-2">
-                    <Check className="w-4 h-4 text-slate-400 shrink-0" />
-                    <span>Excel & CSV batch importing</span>
-                  </div>
-                </div>
-              </div>
-              <button 
-                onClick={onLaunchApp}
-                className="w-full bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-850 font-bold py-3 rounded-xl transition-all duration-200 mt-8"
-              >
-                Get Started
-              </button>
-            </div>
-
-            {/* Pro Plan (Featured) */}
-            <div className="bg-white border-2 border-emerald-600 p-8 rounded-2xl flex flex-col justify-between relative shadow-xl hover:shadow-2xl transition-all">
-              <div className="absolute top-0 right-6 -translate-y-1/2 bg-emerald-600 text-white font-extrabold text-[10px] uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
-                Most Popular
-              </div>
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    Professional
-                    <Sparkles className="w-4 h-4 text-emerald-600 fill-emerald-600/20" />
-                  </h3>
-                  <p className="text-emerald-650 text-xs mt-1">Best value for expanding sales operations</p>
-                </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-slate-900">
-                    {activePlan === "monthly" ? "$29" : "$23"}
-                  </span>
-                  <span className="text-slate-655 text-sm">/ month</span>
-                </div>
-                <div className="space-y-3.5 border-t border-slate-100 pt-6 text-sm text-slate-700">
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span className="font-semibold text-slate-900">Unlimited recipients</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Smart anti-detection system</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Excel & CSV imports & parsing</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Multi-variable personalization</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Email & Chat Support response &lt; 2h</span>
-                  </div>
-                </div>
-              </div>
-              <button 
-                onClick={onLaunchApp}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl transition-all duration-200 shadow-md shadow-emerald-600/10 mt-8"
-              >
-                Upgrade to Pro
-              </button>
-            </div>
-
-            {/* Enterprise Plan */}
-            <div className="bg-white border border-slate-200 p-8 rounded-2xl flex flex-col justify-between hover:border-slate-350 hover:shadow-lg transition-all">
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">Enterprise</h3>
-                  <p className="text-slate-600 text-xs mt-1">For organizations requiring compliance</p>
-                </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-slate-900">Custom</span>
-                </div>
-                <div className="space-y-3.5 border-t border-slate-100 pt-6 text-sm text-slate-700">
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Multi-Account Rotation</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Dedicated server instances</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Advanced campaign reports & analytics</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>24/7 dedicated account manager</span>
-                  </div>
-                </div>
-              </div>
-              <button 
-                onClick={onLaunchApp}
-                className="w-full bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-850 font-bold py-3 rounded-xl transition-all duration-200 mt-8"
-              >
-                Contact Sales
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section id="faq" className="py-20 max-w-4xl mx-auto px-6 relative z-10">
-        <div className="text-center space-y-4 mb-16">
-          <h2 className="text-3xl font-extrabold text-slate-900">Frequently Asked Questions</h2>
-          <p className="text-slate-600 text-base">Got questions? We've got answers. Reach out if you can't find what you need.</p>
-        </div>
-
-        <div className="space-y-6">
-          <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm">
-            <h3 className="text-base font-bold text-slate-850 flex items-center gap-2">
-              <HelpCircle className="w-5 h-5 text-emerald-600" />
-              Do I need to scan the WhatsApp QR code every time?
-            </h3>
-            <p className="text-slate-600 text-sm mt-3 leading-relaxed ml-7">
-              No! Once you scan the QR code to authenticate, your session is saved locally in your background Chrome profile session folder. This persistence lets you send messages immediately in subsequent launches without repeating the scanning process.
-            </p>
-          </div>
-
-          <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm">
-            <h3 className="text-base font-bold text-slate-850 flex items-center gap-2">
-              <HelpCircle className="w-5 h-5 text-emerald-600" />
-              How does the anti-ban technology protect my account?
-            </h3>
-            <p className="text-slate-605 text-sm mt-3 leading-relaxed ml-7">
-              We employ structured, organic timing offsets between outgoing broadcasts. Instead of sending hundreds of messages instantaneously, our engine simulates organic human typing speed and connection handshakes, which heavily reduces the probability of automated filters flagging your account.
-            </p>
-          </div>
-
-          <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm">
-            <h3 className="text-base font-bold text-slate-850 flex items-center gap-2">
-              <HelpCircle className="w-5 h-5 text-emerald-600" />
-              Can I customize my messages with user-specific names?
-            </h3>
-            <p className="text-slate-605 text-sm mt-3 leading-relaxed ml-7">
-              Absolutely! You can map dynamic tags (such as <code className="text-emerald-700 bg-slate-100 px-1 py-0.5 rounded font-mono">{"{{Name}}"}</code>) inside the text composer. The campaign engine automatically parses the recipient's name before executing the delivery script, ensuring personal connection.
-            </p>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="border-t border-slate-200 py-12 px-6 bg-white relative z-10">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="w-full px-4 md:px-12 lg:px-16 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
               <MessageSquare className="w-4.5 h-4.5 text-slate-950 stroke-[2.5]" />
